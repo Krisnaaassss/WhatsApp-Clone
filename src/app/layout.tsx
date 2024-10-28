@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@/providers/themeProviders";
 import "./globals.css";
+import { ConvexClientProvider } from "@/providers/convexClientProvider";
 
 export default function RootLayout({
   children,
@@ -15,7 +16,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ConvexClientProvider>{children}</ConvexClientProvider>
         </ThemeProvider>
       </body>
     </html>
