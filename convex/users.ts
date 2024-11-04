@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ConvexError, v } from "convex/values"; 
 import { internalMutation, query } from "./_generated/server"; 
 
@@ -6,6 +7,7 @@ import { internalMutation, query } from "./_generated/server";
  * Jika berhasil, maka akan mengembalikan dokumen user yang baru dibuat.
  * Jika gagal, maka akan mengembalikan ConvexError.
  */
+
 export const createUser = internalMutation({
     args: {
         tokenIdentifier: v.string(), // TokenIdentifier user
