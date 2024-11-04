@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values"; 
-import { internalMutation } from "./_generated/server"; 
+import { internalMutation, query } from "./_generated/server"; 
 
 /**
  * Membuat user baru dengan tokenIdentifier, email, image, dan name.
@@ -87,3 +87,38 @@ export const updateUser = internalMutation({
         await ctx.db.patch(user._id, { image: args.image }); // Mengubah image user
     } 
 })
+
+export const getUser = query({
+    args: {}, // TokenIdentifier user
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity(); // Memastikan user sudah login
+
+        if(!identity){
+            throw new ConvexError("User not found");
+        }
+        const user = await ctx.db
+            .query("users")
+            .collect()
+            return user;  
+    }
+})
+
+export const getMe = query({
+    args:{},
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity(); // Memastikan user sudah login
+
+        if(!identity){
+            throw new ConvexError("User not found");
+        }
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique()
+        
+        if(!user){
+            throw new ConvexError("User not found");
+        }
+        return user
+    }
+}) 
