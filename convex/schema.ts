@@ -19,5 +19,11 @@ export default defineSchema({
         groupImage : v.optional(v.id("_storage")),
         admin : v.optional(v.id("users")),
         
-    })
+    }),
+    message : defineTable({
+        conversationId : v.id("conversations"),
+        messageType : v.union(v.literal("text"), v.literal("image"), v.literal("file"), v.literal("video")),
+        content : v.string(),
+        sender : v.string() || v.id("users"),
+    }).index("by_conversationId", ["conversationId"]),
 })

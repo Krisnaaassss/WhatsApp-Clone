@@ -92,7 +92,7 @@ const UserListDialog = () => {
       <DialogContent>
         <DialogHeader>
           <DialogClose ref={dialogCloseRef} />
-          <DialogTitle>USERS</DialogTitle>
+          <DialogTitle>USER</DialogTitle>
         </DialogHeader>
 
         <DialogDescription>Start a new chat</DialogDescription>

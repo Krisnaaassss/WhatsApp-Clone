@@ -98,10 +98,9 @@ export const getUser = query({
         if(!identity){
             throw new ConvexError("User not found");
         }
-        const user = await ctx.db
-            .query("users")
-            .collect()
-            return user;  
+        // Fungsi ini mengambil semua user kecuali user yang sedang login
+        const users = await ctx.db.query("users").collect();
+        return users.filter((u) => u.tokenIdentifier !== identity.tokenIdentifier);
     }
 })
 
