@@ -16,6 +16,7 @@ import { ImageIcon, MessageSquareDiff } from "lucide-react";
 import { Id } from "../../../convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import toast from "react-hot-toast";
 
 const UserListDialog = () => {
   const [selectedUsers, setSelectedUsers] = useState<Id<"users">[]>([]);
@@ -29,6 +30,7 @@ const UserListDialog = () => {
   const createConversation = useMutation(api.conversations.createConversation);
   const me = useQuery(api.users.getMe);
   const users = useQuery(api.users.getUser);
+  const generateUploadUrl = useMutation(api.conversations.generateUploadUrl);
 
   useEffect(() => {
     if (!selectedImage) return setRenderedImage("");
@@ -38,22 +40,45 @@ const UserListDialog = () => {
   }, [selectedImage]);
 
   const handleCreateConversation = async () => {
-    if (selectedUsers.length === 0) return;
+    if (selectedUsers.length === 0 || !me?._id) return;
+
     setIsLoading(true);
     try {
       const isGroup = selectedUsers.length > 1;
-      let conversationId;
+
       if (!isGroup) {
-        conversationId = await createConversation({
-          participants: [...selectedUsers, me?._id!],
-          isGroup,
+        await createConversation({
+          participants: [...selectedUsers, me._id],
+          isGroup: false,
         });
       } else {
-        setSelectedUsers([]);
-        dialogCloseRef.current?.click();
+        const postUrl = await generateUploadUrl();
+
+        const result = await fetch(postUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": selectedImage?.type || "image/jpeg/png",
+          },
+          body: selectedImage,
+        });
+
+        const { storageId } = await result.json();
+
+        await createConversation({
+          participants: [...selectedUsers, me._id],
+          isGroup: true,
+          admin: me._id,
+          groupName,
+          groupImage: storageId,
+        });
       }
-    } catch (error) {
-      console.error(error);
+
+      setSelectedUsers([]);
+      dialogCloseRef.current?.click();
+      setGroupName("");
+      setSelectedImage(null);
+    } catch {
+      toast.error("Failed to create conversation");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +92,6 @@ const UserListDialog = () => {
       <DialogContent>
         <DialogHeader>
           <DialogClose ref={dialogCloseRef} />
-          {/* TODO: <DialogClose /> will be here */}
           <DialogTitle>USERS</DialogTitle>
         </DialogHeader>
 
@@ -82,7 +106,6 @@ const UserListDialog = () => {
             />
           </div>
         )}
-        {/* TODO: input file */}
         <input
           type="file"
           accept="image/*"

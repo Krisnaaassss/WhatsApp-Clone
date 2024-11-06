@@ -9,6 +9,7 @@ import {
   SignedOut,
 } from "@clerk/nextjs";
 import ConvexClientProvider from "@/providers/ConvexClientProvider";
+import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({
   children,
@@ -29,7 +30,10 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <ConvexClientProvider>
-              <SignedIn>{children}</SignedIn>
+              <SignedIn>
+                {children}
+                <Toaster />
+              </SignedIn>
               <SignedOut>
                 <RedirectToSignIn />
               </SignedOut>

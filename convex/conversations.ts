@@ -17,33 +17,34 @@ export const createConversation = mutation({
         if (!identify) {
             throw new ConvexError("Unauthorized");
         }
+
         const existingConversation = await ctx.db
-			.query("conversations")
-			.filter((q) =>
-				q.or(
-					q.eq(q.field("participants"), args.participants),
-					q.eq(q.field("participants"), args.participants.reverse())
-				)
-			)
-			.first();
+            .query("conversations")
+            .filter((q) =>
+                q.or(
+                    q.eq(q.field("participants"), args.participants),
+                    q.eq(q.field("participants"), args.participants.reverse())
+                )
+            )
+            .first();
 
-		if (existingConversation) {
-			return existingConversation._id;
-		}
-
-        let groupImage;
-
-        if (args.groupImage) {
-            console.log("Uploading group image");
+        if (existingConversation) {
+            return existingConversation._id;
         }
 
+        // Insert only the storage ID (groupImage) as requested
         const conversationId = await ctx.db.insert("conversations", {
             participants: args.participants,
             isGroup: args.isGroup,
             groupName: args.groupName,
-            groupImage,
-            admin: args.admin,
-        })
+            groupImage: args.groupImage,
+            admin: args.admin
+        });
+
         return conversationId;
     }
-})
+});
+
+export const generateUploadUrl = mutation(async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+}) 
