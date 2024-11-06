@@ -112,9 +112,12 @@ export const getMe = query({
         if(!identity){
             throw new ConvexError("User not found");
         }
+        // Fungsi ini mengambil user yang sedang login berdasarkan tokenIdentifiernya
         const user = await ctx.db
             .query("users")
+            // Gunakan index by_tokenIdentifier untuk mempercepat pencarian
             .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+            // Mengembalikan satu dokumen user yang sesuai dengan tokenIdentifier
             .unique()
         
         if(!user){
@@ -123,3 +126,26 @@ export const getMe = query({
         return user
     }
 }) 
+
+export const getGroupMembers = query({
+    args :{conversationId: v.id("conversations")},
+    handler: async (ctx, args) => {
+        const  identity = await ctx.auth.getUserIdentity(); // Memastikan user sudah login
+
+        if(!identity){
+            throw new ConvexError("Unauthorized");
+        }
+        const conversation = await ctx.db
+        .query("conversations")
+        .filter((q) => q.eq(q.field("_id"), args.conversationId))
+        .first();
+
+        if(!conversation){
+            throw new ConvexError("Conversation not found");
+        } 
+
+        const users = await ctx.db.query("users").collect();
+        const justGroupMembers = users.filter((u) => conversation.participants.includes(u._id));
+        return justGroupMembers
+    }
+})
