@@ -4,6 +4,8 @@ import { MessageSeenSvg } from "@/lib/svgs";
 import { ImageIcon, Users, VideoIcon } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useConversationStore } from "@/store/chatStore";
+import { Id } from "../../../convex/_generated/dataModel";
 
 type MessageType = {
   _creationTime?: number;
@@ -28,23 +30,42 @@ type ConversationType = {
 };
 
 const Conversation = ({ conversation }: { conversation: ConversationType }) => {
-  const conversationImage = conversation.groupImage || conversation.image;
+  // Add image URL fetching for group images
+  const groupImageUrl = useQuery(
+    api.conversations.getImageUrl,
+    conversation.groupImage ? { storageId: conversation.groupImage as Id<"_storage"> } : "skip"
+  );
+
+  // Use group image URL if it exists, otherwise fall back to regular image
+  const conversationImage = conversation.isGroup
+    ? groupImageUrl || "/placeholder.png"
+    : conversation.image || "/placeholder.png";
+
   const conversationName = conversation.groupName || conversation.name;
   const lastMessage = conversation.lastMessage;
   const lastMessageType = lastMessage?.messageType;
   const me = useQuery(api.users.getMe);
 
+  const { setSelectedConversation, selectedConversation } =
+    useConversationStore();
+
+  const bgChatActive = selectedConversation?._id === conversation._id;
+
   return (
     <>
       <div
-        className={`flex gap-2 items-center p-3 hover:bg-chat-hover cursor-pointer `}
+        className={`flex gap-2 items-center p-3 hover:bg-chat-hover cursor-pointer ${
+          bgChatActive ? "bg-gray-tertiary" : ""
+        }
+        `}
+        onClick={() => setSelectedConversation(conversation)}
       >
         <Avatar className="border border-gray-900 overflow-visible relative">
           {conversation.isOnline && (
             <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-foreground" />
           )}
           <AvatarImage
-            src={conversationImage || "/placeholder.png"}
+            src={conversationImage}
             className="object-cover rounded-full"
           />
           <AvatarFallback>

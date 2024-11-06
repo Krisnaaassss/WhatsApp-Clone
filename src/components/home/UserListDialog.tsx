@@ -45,39 +45,44 @@ const UserListDialog = () => {
     setIsLoading(true);
     try {
       const isGroup = selectedUsers.length > 1;
+      let storageId = null;
 
-      if (!isGroup) {
-        await createConversation({
-          participants: [...selectedUsers, me._id],
-          isGroup: false,
-        });
-      } else {
+      if (isGroup && selectedImage) {
         const postUrl = await generateUploadUrl();
 
-        const result = await fetch(postUrl, {
+        // Add error handling for upload
+        if (!postUrl) {
+          throw new Error("Failed to generate upload URL");
+        }
+
+        const response = await fetch(postUrl, {
           method: "POST",
-          headers: {
-            "Content-Type": selectedImage?.type || "image/jpeg/png",
-          },
+          headers: { "Content-Type": selectedImage.type },
           body: selectedImage,
         });
 
-        const { storageId } = await result.json();
+        if (!response.ok) {
+          throw new Error("Failed to upload image");
+        }
 
-        await createConversation({
-          participants: [...selectedUsers, me._id],
-          isGroup: true,
-          admin: me._id,
-          groupName,
-          groupImage: storageId,
-        });
+        const data = await response.json();
+        storageId = data.storageId;
       }
 
+      await createConversation({
+        participants: [...selectedUsers, me._id],
+        isGroup,
+        admin: isGroup ? me._id : undefined,
+        groupName: isGroup ? groupName : undefined,
+        groupImage: storageId, // This will be the storage ID
+      });
+
       setSelectedUsers([]);
-      dialogCloseRef.current?.click();
       setGroupName("");
       setSelectedImage(null);
-    } catch {
+      dialogCloseRef.current?.click();
+    } catch (error) {
+      console.error("Conversation creation error:", error);
       toast.error("Failed to create conversation");
     } finally {
       setIsLoading(false);

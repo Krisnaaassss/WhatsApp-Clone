@@ -93,7 +93,7 @@ export const getMyConversations = query({
                 // Mendapatkan message terakhir dalam conversation
                 const lastMessage = await ctx.db
                     .query("message")
-                    .filter((q) => q.eq(q.field("conversation"), conversation._id))
+                .filter((q) => q.eq(q.field("conversationId"), conversation._id))
                     .order("desc")
                     .take(1)
 
@@ -111,3 +111,10 @@ export const getMyConversations = query({
     }
 
 })
+
+export const getImageUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
