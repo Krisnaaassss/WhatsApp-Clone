@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 export const sendTextMessage = mutation({
     args :{
@@ -35,8 +35,93 @@ export const sendTextMessage = mutation({
         await ctx.db.insert("message",{
             content : args.content,
             sender : args.sender,
-            conversationId : args.conversation,
+            conversation : args.conversation,
             messageType : "text",
         })
     }
 })
+
+// Optimized
+export const getMessages = query({
+	args: {
+		conversation: v.id("conversations"),
+	},
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error("Unauthorized");
+		}
+
+		const messages = await ctx.db
+			.query("message")
+			.withIndex("by_conversation", (q) => q.eq("conversation", args.conversation))
+			.collect();
+
+		// Membuat map untuk menyimpan cache profile pengguna
+		const userProfileCache = new Map();
+
+		// Membuat array baru yang berisi message dengan data pengirim yang di-join dengan tabel users
+		const messagesWithSender = await Promise.all(
+			messages.map(async (message) => {
+				// Jika pengirim adalah ChatGPT maka return object dengan nama dan image yang sesuai
+				if (message.sender === "ChatGPT") {
+					const image = message.messageType === "text" ? "/gpt.png" : "dall-e.png";
+					return { ...message, sender: { name: "ChatGPT", image } };
+				}
+				// Membuat variabel untuk menyimpan data pengirim
+				let sender;
+				// Cek jika data pengirim sudah ada di cache
+				if (userProfileCache.has(message.sender)) {
+					// Jika ada maka ambil dari cache
+					sender = userProfileCache.get(message.sender);
+				} else {
+					// Jika tidak ada maka ambil dari database
+					sender = await ctx.db
+						.query("users")
+						.filter((q) => q.eq(q.field("_id"), message.sender))
+						.first();
+					// Simpan data pengirim di cache
+					userProfileCache.set(message.sender, sender);
+				}
+
+				// Return object dengan data message dan sender yang di-join
+				return { ...message, sender };
+			})
+		);
+
+		// Return array yang sudah di-join dengan tabel users
+		return messagesWithSender;
+	},
+});
+
+
+//kurang optimal
+// export const getMessages = query({
+//     args : {
+//         conversation : v.id("conversations"),
+//     },
+//     handler : async (ctx, args) => {
+//         const identity = await ctx.auth.getUserIdentity(); // Memastikan user sudah login
+//         if(!identity){
+//             throw new ConvexError("Not authenticated");
+//         }
+        
+//         const messages = await ctx.db.query("message")
+//         .withIndex("by_conversation", (q) => 
+//             // 'q' adalah objek query yang digunakan untuk membangun kondisi pencarian
+//             // 'eq' adalah metode untuk membandingkan nilai bidang dengan nilai yang diberikan
+//             q.eq("conversation", args.conversation)
+//         )
+//         .collect();
+
+//         const whoSendMessages = await Promise.all(
+//             messages.map((message) => 
+//                 ctx.db.query("users")
+//                 .filter((q) => q.eq(q.field("_id"), message.sender))
+//                 .first()
+//             )
+//         );
+//             return {...messages, whoSendMessages};
+       
+//     }
+// })

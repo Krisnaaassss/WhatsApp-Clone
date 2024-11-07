@@ -33,7 +33,7 @@ export const createConversation = mutation({
         }
 
         // Insert only the storage ID (groupImage) as requested
-        const conversationId = await ctx.db.insert("conversations", {
+        const conversation = await ctx.db.insert("conversations", {
             participants: args.participants,
             isGroup: args.isGroup,
             groupName: args.groupName,
@@ -41,7 +41,7 @@ export const createConversation = mutation({
             admin: args.admin
         });
 
-        return conversationId;
+        return conversation;
     }
 });
 
@@ -93,7 +93,7 @@ export const getMyConversations = query({
                 // Mendapatkan message terakhir dalam conversation
                 const lastMessage = await ctx.db
                     .query("message")
-                .filter((q) => q.eq(q.field("conversationId"), conversation._id))
+                .filter((q) => q.eq(q.field("conversation"), conversation._id))
                     .order("desc")
                     .take(1)
 

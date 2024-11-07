@@ -21,9 +21,9 @@ export default defineSchema({
         
     }),
     message : defineTable({
-        conversationId : v.id("conversations"),
+        conversation : v.id("conversations"),
         messageType : v.union(v.literal("text"), v.literal("image"), v.literal("file"), v.literal("video")),
         content : v.string(),
         sender : v.string() || v.id("users"),
-    }).index("by_conversationId", ["conversationId"]),
+    }).index("by_conversation", ["conversation"]),
 })

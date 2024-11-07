@@ -128,7 +128,7 @@ export const getMe = query({
 }) 
 
 export const getGroupMembers = query({
-    args :{conversationId: v.id("conversations")},
+    args :{conversation: v.id("conversations")},
     handler: async (ctx, args) => {
         const  identity = await ctx.auth.getUserIdentity(); // Memastikan user sudah login
 
@@ -137,7 +137,7 @@ export const getGroupMembers = query({
         }
         const conversation = await ctx.db
         .query("conversations")
-        .filter((q) => q.eq(q.field("_id"), args.conversationId))
+        .filter((q) => q.eq(q.field("_id"), args.conversation))
         .first();
 
         if(!conversation){

@@ -19,6 +19,22 @@ export type Conversation = {
 	};
 };
 
+export interface IMessage {
+	_id: string;
+	content: string;
+	_creationTime: number;
+	messageType: "text" | "image" | "video" | "file";
+	sender: {
+		_id: Id<"users">;
+		image: string;
+		name?: string;
+		tokenIdentifier: string;
+		email: string;
+		_creationTime: number;
+		isOnline: boolean;
+	};
+}
+
 type ConversationStore = {
 	selectedConversation: Conversation | null;
 	setSelectedConversation: (conversation: Conversation | null) => void;
@@ -28,3 +44,4 @@ export const useConversationStore = create<ConversationStore>((set)=>({
     selectedConversation: null,
     setSelectedConversation: (conversation) => set({selectedConversation: conversation})
 }))
+
