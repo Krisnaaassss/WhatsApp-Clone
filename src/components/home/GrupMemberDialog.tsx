@@ -19,7 +19,7 @@ const GroupMembersDialog = ({
   selectedConversation,
 }: GroupMembersDialogProps) => {
   const users = useQuery(api.users.getGroupMembers, {
-    conversation: selectedConversation._id,
+    conversationId: selectedConversation._id,
   });
 
   return (
