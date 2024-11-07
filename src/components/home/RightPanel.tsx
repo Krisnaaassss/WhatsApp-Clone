@@ -27,7 +27,6 @@ const RightPanel = () => {
   const conversationName =
     selectedConversation.groupName || selectedConversation.name;
 
-  // Use group image URL if it exists, otherwise fall back to regular image
   const conversationImage = selectedConversation.isGroup
     ? groupImageUrl || "/placeholder.png"
     : selectedConversation.image || "/placeholder.png";

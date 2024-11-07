@@ -7,13 +7,6 @@ import { api } from "../../../convex/_generated/api";
 import { useConversationStore } from "@/store/chatStore";
 import { Id } from "../../../convex/_generated/dataModel";
 
-type MessageType = {
-  _creationTime?: number;
-  sender: string;
-  content: string;
-  messageType: "text" | "image" | "video" | "string";
-};
-
 type ConversationType = {
   name: string | null | undefined;
   image: string | null | undefined;
@@ -29,11 +22,21 @@ type ConversationType = {
   sender?: string;
 };
 
+type MessageType = {
+  _id: string;
+  _creationTime: number;
+  sender: string;
+  content: string;
+  messageType: "text" | "image" | "video";
+};
+
 const Conversation = ({ conversation }: { conversation: ConversationType }) => {
   // Add image URL fetching for group images
   const groupImageUrl = useQuery(
     api.conversations.getImageUrl,
-    conversation.groupImage ? { storageId: conversation.groupImage as Id<"_storage"> } : "skip"
+    conversation.groupImage
+      ? { storageId: conversation.groupImage as Id<"_storage"> }
+      : "skip"
   );
 
   // Use group image URL if it exists, otherwise fall back to regular image
