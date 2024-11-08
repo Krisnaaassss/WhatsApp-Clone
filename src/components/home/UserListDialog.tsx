@@ -74,7 +74,7 @@ const UserListDialog = () => {
         isGroup,
         admin: isGroup ? me._id : undefined,
         groupName: isGroup ? groupName : undefined,
-        groupImage: storageId, // This will be the storage ID
+        groupImage: storageId || undefined,
       });
 
       setSelectedUsers([]);

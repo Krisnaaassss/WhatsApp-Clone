@@ -20,10 +20,10 @@ export default defineSchema({
         admin : v.optional(v.id("users")),
         
     }),
-    message : defineTable({
-        conversation : v.id("conversations"),
-        messageType : v.union(v.literal("text"), v.literal("image"), v.literal("file"), v.literal("video")),
-        content : v.string(),
-        sender : v.string() || v.id("users"),
+     message: defineTable({
+        conversation: v.id("conversations"),
+        messageType: v.union(v.literal("text"), v.literal("image"), v.literal("file"), v.literal("video")),
+        content: v.string(),
+        sender: v.union(v.string(), v.id("users")),
     }).index("by_conversation", ["conversation"]),
 })

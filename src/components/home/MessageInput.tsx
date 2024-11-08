@@ -8,6 +8,7 @@ import { useConversationStore } from "@/store/chatStore";
 import toast from "react-hot-toast";
 import useComponentVisible from "@/hooks/useComponentVisible";
 import EmojiPicker, { Theme } from "emoji-picker-react";
+import MediaDropDown from "../chat/MediaDropDown";
 const MessageInput = () => {
   const { ref, isComponentVisible, setIsComponentVisible } =
     useComponentVisible(false);
@@ -52,7 +53,7 @@ const MessageInput = () => {
           )}
           <Laugh className="text-gray-600 dark:text-gray-400" />
         </div>
-        <Plus className="text-gray-600 dark:text-gray-400" />
+        <MediaDropDown />
       </div>
       <form onSubmit={handleSendMessage} className="w-full flex gap-3">
         <div className="flex-1">

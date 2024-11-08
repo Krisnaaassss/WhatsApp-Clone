@@ -12,26 +12,30 @@ export const sendTextMessage = mutation({
         if(!identity){
             throw new ConvexError("Not authenticated");
         }
+        // Mencari user yang sedang login
         const user = await ctx.db.query("users")
         .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
         .unique();
 
         if(!user){
-            throw new ConvexError("User not found");
+            throw new ConvexError("User tidak ditemukan");
         }
 
+        // Mencari conversation dimana user sedang berada
         const conversation = await ctx.db.query("conversations")
         .filter((q) => q.eq(q.field("_id"), args.conversation))
         .first();
 
         if(!conversation){
-            throw new ConvexError("Conversation not found");
+            throw new ConvexError("Conversation tidak ditemukan");
         }
         
+        // Mengecek apakah user ada di dalam conversation
         if(!conversation.participants.includes(user._id)){
-            throw new ConvexError("User not in conversation");
+            throw new ConvexError("User tidak ada di dalam conversation");
         }
 
+        // Membuat message baru
         await ctx.db.insert("message",{
             content : args.content,
             sender : args.sender,
@@ -93,6 +97,45 @@ export const getMessages = query({
 		return messagesWithSender;
 	},
 });
+
+export const sendImage = mutation({
+	args: { imgId: v.id("_storage"), sender: v.id("users"), conversation: v.id("conversations") },
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new ConvexError("Unauthorized");
+		}
+
+		const content = (await ctx.storage.getUrl(args.imgId)) as string;
+
+		await ctx.db.insert("message", {
+			content: content,
+			sender: args.sender,
+			messageType: "image",
+			conversation: args.conversation,
+		});
+	},
+});
+
+export const sendVideo = mutation({
+	args: { videoId: v.id("_storage"), sender: v.id("users"), conversation: v.id("conversations") },
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new ConvexError("Unauthorized");
+		}
+
+		const content = (await ctx.storage.getUrl(args.videoId)) as string;
+
+		await ctx.db.insert("message", {
+			content: content,
+			sender: args.sender,
+			messageType: "video",
+			conversation: args.conversation,
+		});
+	},
+});
+
 
 
 //kurang optimal
