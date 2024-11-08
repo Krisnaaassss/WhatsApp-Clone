@@ -3,15 +3,13 @@ import ReactPlayer from "react-player";
 
 const VideoMessage = ({ message }: { message: IMessage }) => {
   return (
-    <div className="rounded-lg overflow-hidden">
+    <div className="rounded-lg overflow-hidden width-[250px] h-[250px]">
       <ReactPlayer
         url={message.content}
-        width="250px"
-        height="250px"
         controls={true}
         light={false}
-        playing={false}
-        preload="metadata"
+        width="100%"
+        height="100%"
       />
     </div>
   );

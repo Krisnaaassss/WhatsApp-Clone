@@ -32,6 +32,24 @@ const ChatBubble = ({ me, message, previousMessage }: ChatBubbleProps) => {
   const bgClass = fromMe ? "bg-green-chat" : "bg-white dark:bg-gray-primary";
   const [isImageOpen, setIsImageOpen] = useState(false);
 
+  const renderMesaageContent = () => {
+    switch (message.messageType) {
+      case "text":
+        return <TextMessage message={message} />;
+      case "image":
+        return (
+          <ImageMessage
+            message={message}
+            handleClick={() => setIsImageOpen(true)}
+          />
+        );
+      case "video":
+        return <VideoMessage message={message} />;
+      default:
+        return null;
+    }
+  };
+
   if (!fromMe) {
     return (
       <>
@@ -46,18 +64,7 @@ const ChatBubble = ({ me, message, previousMessage }: ChatBubbleProps) => {
             className={`flex flex-col z-20 max-w-fit px-2 pt-1 rounded-md shadow-md relative ${bgClass}`}
           >
             <OtherMessageIndicator />
-            {message.messageType === "text" && (
-              <TextMessage message={message} />
-            )}
-            {message.messageType === "image" && (
-              <ImageMessage
-                message={message}
-                handleClick={() => setIsImageOpen(true)}
-              />
-            )}
-            {message.messageType === "video" && (
-              <VideoMessage message={message} />
-            )}
+            {renderMesaageContent()}
             {isImageOpen && (
               <ViewImgInChat
                 open={isImageOpen}
@@ -79,16 +86,7 @@ const ChatBubble = ({ me, message, previousMessage }: ChatBubbleProps) => {
           className={`flex z-20 max-w-fit px-2 pt-1 rounded-md shadow-md ml-auto relative ${bgClass}`}
         >
           <SelfMessageIndicator />
-          {message.messageType === "text" && <TextMessage message={message} />}
-          {message.messageType === "image" && (
-            <ImageMessage
-              message={message}
-              handleClick={() => setIsImageOpen(true)}
-            />
-          )}
-          {message.messageType === "video" && (
-            <VideoMessage message={message} />
-          )}
+          {renderMesaageContent()}
           {isImageOpen && (
             <ViewImgInChat
               open={isImageOpen}

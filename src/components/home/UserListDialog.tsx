@@ -17,6 +17,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import toast from "react-hot-toast";
+import { useConversationStore } from "@/store/chatStore";
 
 const UserListDialog = () => {
   const [selectedUsers, setSelectedUsers] = useState<Id<"users">[]>([]);
@@ -31,6 +32,7 @@ const UserListDialog = () => {
   const me = useQuery(api.users.getMe);
   const users = useQuery(api.users.getUser);
   const generateUploadUrl = useMutation(api.conversations.generateUploadUrl);
+  const { setSelectedConversation } = useConversationStore();
 
   useEffect(() => {
     if (!selectedImage) return setRenderedImage("");
@@ -50,7 +52,6 @@ const UserListDialog = () => {
       if (isGroup && selectedImage) {
         const postUrl = await generateUploadUrl();
 
-        // Add error handling for upload
         if (!postUrl) {
           throw new Error("Failed to generate upload URL");
         }
@@ -69,7 +70,8 @@ const UserListDialog = () => {
         storageId = data.storageId;
       }
 
-      await createConversation({
+      // Create the conversation and get the ID back
+      const conversationId = await createConversation({
         participants: [...selectedUsers, me._id],
         isGroup,
         admin: isGroup ? me._id : undefined,
@@ -77,10 +79,29 @@ const UserListDialog = () => {
         groupImage: storageId || undefined,
       });
 
+      const conversationName = isGroup
+        ? groupName
+        : users?.find((user) => user._id === selectedUsers[0])?.name;
+
+      // Update the store with the new conversation
+      setSelectedConversation({
+        _id: conversationId, // Use the actual conversation ID
+        name: conversationName || "New Conversation",
+        participants: selectedUsers,
+        isGroup,
+        image: isGroup
+          ? renderedImage
+          : users?.find((user) => user._id === selectedUsers[0])?.image,
+        admin: me?._id,
+      });
+
+      // Reset the form
       setSelectedUsers([]);
       setGroupName("");
       setSelectedImage(null);
       dialogCloseRef.current?.click();
+
+      // Navigate to the chat
     } catch (error) {
       console.error("Conversation creation error:", error);
       toast.error("Failed to create conversation");
