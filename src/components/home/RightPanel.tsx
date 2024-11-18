@@ -6,13 +6,14 @@ import MessageContainer from "./MessageContainer";
 import MessageInput from "./MessageInput";
 import GroupMembersDialog from "./GrupMemberDialog";
 import { useConversationStore } from "@/store/chatStore";
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
 const RightPanel = () => {
   const { selectedConversation, setSelectedConversation } =
     useConversationStore();
+  const { isLoading } = useConvexAuth();
 
   // Get image URL if it's a group conversation
   const groupImageUrl = useQuery(
@@ -23,6 +24,7 @@ const RightPanel = () => {
   );
 
   if (!selectedConversation) return <ChatPlaceHolder />;
+  if (isLoading) return null;
 
   const conversationName =
     selectedConversation.groupName || selectedConversation.name;

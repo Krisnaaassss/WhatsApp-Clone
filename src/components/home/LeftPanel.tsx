@@ -7,10 +7,35 @@ import { UserButton } from "@clerk/nextjs";
 import UserListDialog from "./UserListDialog";
 import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useEffect } from "react";
+import { useConversationStore } from "@/store/chatStore";
 
 const LeftPanel = () => {
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const conversations = useQuery(api.conversations.getMyConversations);
+  const { selectedConversation, setSelectedConversation } =
+    useConversationStore();
+
+  useEffect(() => {
+    // Mendapatkan semua ID percakapan dari daftar percakapan
+    const conversationId = conversations?.map(
+      (conversation) => conversation._id
+    );
+
+    // Jika ada percakapan yang dipilih dan ID percakapan yang tersedia
+    // tidak termasuk ID percakapan yang dipilih, maka setel percakapan terpilih ke null
+    // Memeriksa apakah ada percakapan yang dipilih dan mendapatkan semua ID percakapan
+    if (selectedConversation && conversationId) {
+      // Memeriksa apakah ID percakapan yang dipilih tidak ada dalam daftar ID percakapan yang tersedia
+      if (!conversationId.includes(selectedConversation._id)) {
+        // Mengatur percakapan yang dipilih ke null jika tidak ada dalam daftar
+        setSelectedConversation(null);
+      }
+    }
+  }, [conversations, selectedConversation, setSelectedConversation]);
+
+  if (isLoading) return null;
+
   return (
     <div className="w-1/4 border-gray-600 border-r">
       <div className="sticky top-0 bg-left-panel z-10">

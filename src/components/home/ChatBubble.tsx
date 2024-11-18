@@ -10,6 +10,7 @@ import { useState } from "react";
 import VideoMessage from "../chat/media/VideoMessage";
 import ImageMessage from "../chat/media/ImageMessage";
 import ViewImgInChat from "../chat/media/ViewImgInChat";
+import ChatAvatarActions from "../chat/ChatAvatarActions";
 
 type user = {
   _id: string;
@@ -54,7 +55,7 @@ const ChatBubble = ({ me, message, previousMessage }: ChatBubbleProps) => {
     return (
       <>
         <Dateindicator message={message} previousMessage={previousMessage} />
-        <div className="flex gap-1 w-2/3">
+        <div className="flex gap-1 w-2/3 mb-2 ">
           <ChatBubleAvatar
             message={message}
             isMember={isMember}
@@ -64,6 +65,7 @@ const ChatBubble = ({ me, message, previousMessage }: ChatBubbleProps) => {
             className={`flex flex-col z-20 max-w-fit px-2 pt-1 rounded-md shadow-md relative ${bgClass}`}
           >
             <OtherMessageIndicator />
+            {isGroup && <ChatAvatarActions message={message} me={me} />}
             {renderMesaageContent()}
             {isImageOpen && (
               <ViewImgInChat

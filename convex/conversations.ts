@@ -118,3 +118,34 @@ export const getImageUrl = query({
     return await ctx.storage.getUrl(args.storageId);
   },
 });
+
+
+export const kickUser = mutation({
+  args: { 
+    conversationId: v.id("conversations"), 
+    userId: v.id("users"), 
+  },
+  handler: async (ctx, args) => {
+    // Mendapatkan identity dari user yang sedang login
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+        throw new ConvexError("Unauthorized"); // Jika user tidak login maka akan mengembalikan ConvexError dengan pesan "Unauthorized"
+    }
+
+    // Mendapatkan dokumen conversation berdasarkan con versationId
+    const conversation = await ctx.db
+      .query("conversations")
+      .filter((q) => q.eq(q.field("_id"), args.conversationId))
+      .unique();
+
+    if (!conversation) {
+        throw new ConvexError("Conversation not found"); // Jika conversation tidak ditemukan maka akan mengembalikan ConvexError dengan pesan "Conversation not found"
+    }
+
+    // Menghapus userId dari daftar participants dalam conversation
+    await ctx.db.patch(args.conversationId,{
+        participants: conversation.participants.filter((id) => id !== args.userId) 
+    })
+  }
+});
+
